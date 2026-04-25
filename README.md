@@ -49,3 +49,7 @@ imports inside library modules) that baseline misses.
 - Precision in the metric (judge: "would gnodar01 raise this?")
 - `KNNFewShot` for topical demos
 - Wire into a draft-PR GitHub Action
+
+## Beyond code review: data analysis review
+
+The same shape - one dominant reviewer, written critiques as labels, typed signature predicting structured issues - might transfer to reviewing data analyses, where systematic review is much rarer than for code. Roger Peng and collaborators have argued for treating data analysis quality as a measurable property: their "alignment" framework ([D'Agostino McGowan, Peng, Hicks, 2024](https://jds-online.org/journal/JDS/article/1437/info)) defines a good analysis as one whose principles match the audience's, and earlier Peng work proposes design principles (transparency, replicability, etc.) that reviewers can score against. If a senior analyst's critiques on past analyses can be harvested - margin comments on notebooks, code-review threads on analysis PRs, written report feedback - the same DSPy compile step should produce a reviewer calibrated to that person's principles. The structural break from code review is that the artifact is messier (notebook + figures + narrative, not a diff), so the harder problem is *labeling consistency*, not the optimizer; the cleanest falsification would be that even with a labeled corpus, compiled output is no closer to the human reviewer than baseline - same test as here, just on a different artifact.
