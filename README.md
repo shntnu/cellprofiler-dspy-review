@@ -1,11 +1,9 @@
 # cellprofiler-dspy-review
 
 > [!NOTE]
-> **Archived.** This repo is parked. The training corpus assumed inline review comments carried the full reviewer signal, but in this codebase the comments are deliberately terse - shorthand for offline pair-programming discussions that aren't on GitHub. Mimicking the surface form would miss the rationale underneath.
+> **Archived.** This trains a reviewer on inline GitHub comments, but in CellProfiler those comments are short on purpose - the real discussion happens offline during pair programming. Copying the comments copies the wrong thing.
 >
-> The viable alternative is a corpus from a strictly-async team where the GitHub artifacts are the discussion, not a pointer to it.
->
-> Credit to [@gnodar01](https://github.com/gnodar01) for the diagnosis and the redirect.
+> A team that does all its review through GitHub would work better. Thanks to [@gnodar01](https://github.com/gnodar01) for pointing this out.
 
 DSPy code reviewer trained on gnodar01's past CellProfiler review comments.
 
