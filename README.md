@@ -2,7 +2,7 @@
 
 DSPy code reviewer trained on gnodar01's past CellProfiler review comments.
 
-## Why
+## The bet
 
 Hypothesis: when one reviewer dominates a repo, their inline comments are a free training set, and a typed signature with those labels produces reviews closer to that reviewer's voice than a hand-written prompt does - rejected if compiled output is indistinguishable from baseline. The same shape (one reviewer, critiques as labels) might extend to reviewing data analyses, where D'Agostino McGowan, Peng, and Hicks ([JCGS 2023](https://www.tandfonline.com/doi/full/10.1080/10618600.2022.2104290), [JDS 2024](https://jds-online.org/journal/JDS/article/1437/info)) give a labeling schema in their six design principles (data matching, exhaustive, skeptical, second-order, clarity, reproducible); the harder problem there is labeling consistency, not the optimizer.
 
