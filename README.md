@@ -2,6 +2,10 @@
 
 DSPy code reviewer trained on gnodar01's past CellProfiler review comments.
 
+## Why
+
+Code-review prompts are usually prose - frozen, untyped, model-coupled, never measured against the human they're supposed to imitate. The hypothesis: when one reviewer dominates a repo, their inline comments are a free training set, and a typed signature plus those labels should produce reviews closer to that reviewer's voice than a hand-written prompt does. The experiment compares zero-shot baseline against a `LabeledFewShot` compile on a held-out PR; success looks like compiled output that recovers gnodar01's terse, architecture-focused concerns where baseline emits generic style nits. The hypothesis is rejected if compiled is indistinguishable from baseline (output style and concern-mix), or if a hand-written prompt enumerating gnodar01's heuristics matches the compiled program - in this run the strict recall metric reads as rejection, but the qualitative diff is directional, so the result is "metric too tight, signal real but small," not a clean verdict.
+
 ## Run
 
     uv sync
