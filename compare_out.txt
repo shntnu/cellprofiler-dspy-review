@@ -1,0 +1,72 @@
+
+Comparing on 3 held-out files with gold comments:
+
+--- src/frontend/cellprofiler/modules/measureobjectintensity.py ---
+
+GOLD (9):
+  - No longer used
+  - No longer used
+  - No longer used.
+  - Not used.
+  - Not used.
+  - Should be using the library opts instead
+  - Should these be constants/enum defined somewhere?
+  - `image_has_mask` is not used.
+  - Not introduced by this PR, but I don't like that we create a local `statistics` variable holding reference to `workspace
+
+BASELINE:
+  - [style] line 9: The import line for `cellprofiler_library.opts.measureobjectintensity` imports multiple names on a single line without parentheses, violating PEP 8 and the project's convention of using parenthesized multi-line imports.
+  - [abstraction] line 253: The `feature_template_map` is built by string-slicing (`val[:-len('_%s')].split('_', 1)[1]`) to reverse-engineer feature names from `TemplateMeasurementFormat` attributes, which is fragile and bypasses the `IntensityFeature` enum's intended abstraction.
+  - [correctness] line 261: `image_name` and `object_name` are rebound inside the `for stat in lib_stats` loop (`image_name = stat[0]`, `object_name = stat[1]`), shadowing the outer loop variables `image_name` and `object_name`, which will corrupt subsequent iterations of the outer loops.
+  - [correctness] line 265: The `measurement_name` constructed from `feature_template_map` uses a format that may not match the key format used internally by `lib_measurements`, making `lib_measurements.has_feature(object_name, measurement_name)` silently return False and drop all measurements.
+  - [style] line 207: A trailing whitespace was introduced on the blank line after `get_measurement_images` (the `+` side shows `    ` instead of an empty line).
+
+COMPILED:
+  - [abstraction] line 263: The `feature_template_map` construction is a fragile, hard-to-read hack that strips `_%s` suffixes and splits on `_` to reverse-engineer a mapping from feature names to template strings. This logic is brittle and will silently break if any template string format changes.
+  - [correctness] line 270: `image_name` and `object_name` are reassigned from `stat[0]` and `stat[1]` inside the loop, shadowing the outer loop variables `image_name` and `object_name`. This will cause incorrect behaviour on subsequent iterations of the outer loops.
+  - [correctness] line 232: `workspace.display_data.statistics = []` is set unconditionally only when `show_window` is True, but later `workspace.display_data.statistics.append(stat)` is called without guarding on `show_window`, which will raise `AttributeError` when `show_window` is False.
+  - [abstraction] line 275: `lib_measurements.has_feature(...)` followed by `lib_measurements.get_measurement(...)` is a double-lookup pattern. If a measurement is unexpectedly absent the failure is silently swallowed.
+
+--- src/subpackages/library/cellprofiler_library/functions/measurement.py ---
+
+GOLD (1):
+  - `ObjectLabelSet` not used
+
+BASELINE:
+  - [convention] line 1654: The section header comment says 'MeasureObjectIntensity' but the functions added include area-occupied, quartile, and mass-displacement helpers that belong to MeasureObjectIntensity; the comment is misleading but more importantly the blank-line convention between top-level functions (two blank lines) is violated throughout – most new functions have only one blank line between them.
+  - [style] line 1676: Trailing whitespace on the `measure_mean_intensity` return line (after the `-> NDArray[numpy.float_]:` annotation there are trailing spaces).
+  - [correctness] line 1683: `numpy.zeros((max(lindexes),))` will raise if `lindexes` is empty (e.g., no objects in the image), and `max(lindexes)` uses Python's built-in rather than `numpy.max`, which is inconsistent and slower for arrays.
+  - [correctness] line 1684: `lindexes - 1` is used as an index into `mean_intensity_per_label`, but `lindexes` may contain 0 (background label), making `lindexes - 1` equal to -1 and silently writing into the last element of the array.
+  - [convention] line 1722: The inline comment style inside `measure_center_of_mass_binary` uses inconsistent indentation for the closing parenthesis of `fixup_scipy_ndimage_result` (it is indented to align with the opening of `scipy.ndimage.mean` rather than the call site), deviating from the rest of the file.
+  - [abstraction] line 1744: `measure_quartile_intensity` returns a tuple of four values (`qmask`, `_dest`, `qmask_no_upper`, `dest_no_upper`) with no type annotation and a leading underscore on `_dest` suggesting it is private/temporary, making the API unclear.
+  - [convention] line 1744: `measure_quartile_intensity` is missing a type annotation for the `order` parameter.
+
+COMPILED:
+  - [convention] line 1680: Section header says `MeasureObjectIntensity` but these functions are not under that module's purview exclusively. The header should be more generic or omitted.
+  - [style] line 1683: Missing blank line between `measure_object_area_occupied` and `measure_integrated_intensity` function definitions; all other functions in this file have a blank line between them.
+  - [style] line 1693: Trailing whitespace on the `measure_std_intensity` signature line.
+  - [style] line 1730: Trailing whitespace on the `measure_max_intensity` return line and inconsistent blank lines around `measure_min_intensity` and `measure_max_intensity`.
+  - [style] line 1744: Inconsistent indentation of the closing parenthesis in `measure_center_of_mass_binary` — it is indented one extra level relative to the function body.
+  - [abstraction] line 1700: `max(lindexes)` is used to size `mean_intensity_per_label`, but if `lindexes` is empty this will raise a `ValueError`. The existing pattern in this file uses `numpy.zeros(len(lindexes))` or similar safe constructions.
+  - [style] line 1683: Lines such as `measure_object_area_occupied` and `measure_integrated_intensity` are single-line function bodies that exceed the project's implicit line-length convention (visible elsewhere in the file).
+
+--- src/subpackages/library/cellprofiler_library/modules/_measureobjectintensity.py ---
+
+GOLD (1):
+  - Resolve TODO
+
+BASELINE:
+  - [correctness] line 148: Operator precedence bug: `masked_labels > 0 & numpy.isfinite(img)` is parsed as `masked_labels > (0 & numpy.isfinite(img))` due to `&` having higher precedence than `>`. This means the mask is computed incorrectly.
+  - [correctness] line 130: `crop_labels_and_image` is called a second time with the already-cropped `labels` as the first argument, but `img` was already reassigned to the cropped version on the previous line. The second call uses the cropped labels to crop `masked_image`, which is correct, but `img` is being shadowed in the loop by the cropped version and will be wrong on subsequent iterations if `object_labels` has more than one entry.
+  - [correctness] line 185: The MAD fraction is `1.0 / image_dimensions` (either 0.5 for 2D or 0.333 for 3D), but MAD is conventionally the median absolute deviation, which should always use the 50th percentile (fraction = 0.5) regardless of image dimensionality.
+  - [correctness] line 186: `median_intensity[llabels - 1]` indexes into the full `median_intensity` array using the masked label values, but `median_intensity` is indexed 0-based by object index while `llabels` contains raw label values. If labels are not contiguous starting from 1 this will produce wrong results; more critically, `median_intensity` at this point may still be zero for objects not yet processed in this loop iteration since it was just populated above.
+  - [unused-code] line 4: `Annotated` is imported from `typing` but `get_intensity_measurements` and `get_location_measurements` use plain type hints; only `measure_object_intensity` uses `Annotated`. This is fine, but `List` and `Tuple` from `typing` are redundant in Python 3.9+ where `list` and `tuple` builtins are preferred per project conventions.
+  - [convention] line 9: The import of `measure_object_area_occupied` and many other functions from `cellprofiler_library.functions.measurement` is a single very long line that exceeds typical line-length conventions and is hard to read.
+
+COMPILED:
+  - [correctness] line 155: Operator precedence bug: `masked_labels > 0 & numpy.isfinite(img)` is parsed as `masked_labels > (0 & numpy.isfinite(img))` due to `&` having higher precedence than `>`. The intended logic requires parentheses.
+  - [correctness] line 192: The MAD fraction `1.0 / image_dimensions` is incorrect. MAD is the median absolute deviation, so the fraction should always be `0.5` (the median), not `1/2` for 2D or `1/3` for 3D.
+  - [unused-code] line 5: `Any` is imported from `typing` but is only used in the `ObjectIntensityStatistics` type alias on line 13, where it could be replaced with a more specific type. However, `List` and `Tuple` are also used only in type aliases and annotations that could use the built-in `list`/`tuple` in Python 3.9+; at minimum `Any` adds no value here.
+  - [correctness] line 237: The inner `add_measurement` closure ignores its `feature_name` parameter when calling `measurements.add_measurement`, so the `feature_name` argument passed in every call is silently unused in the measurement key construction.
+  - [abstraction] line 8: `crop_labels_and_image` is imported directly from `cellprofiler_core.utilities.core.object`, which is a core-layer import inside a library module. Library modules should not depend on `cellprofiler_core`.
+
