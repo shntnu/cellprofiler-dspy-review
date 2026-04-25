@@ -1,9 +1,9 @@
 # cellprofiler-dspy-review
 
 > [!NOTE]
-> **Archived.** This trains a reviewer on inline GitHub comments, but in CellProfiler those comments are short on purpose - the real discussion happens offline during pair programming. Copying the comments copies the wrong thing.
+> **Archived.** This trains a reviewer on inline GitHub comments. In the PRs this corpus draws from, those comments are deliberately short: each one stands in for ~30 minutes of pair-programming discussion between two engineers that never made it to GitHub. A lot of what would be a review comment in an async team is instead a fix one of them pushed directly, or something they worked out live. Mimicking the comments mimics fragments, not the review.
 >
-> A team that does all its review through GitHub would work better. Thanks to [@gnodar01](https://github.com/gnodar01) for pointing this out.
+> The right corpus is a small team that does everything on GitHub - PR comments, issues, discussions, milestones, project board. Thanks to [@gnodar01](https://github.com/gnodar01) for the redirect.
 
 DSPy code reviewer trained on gnodar01's past CellProfiler review comments.
 
