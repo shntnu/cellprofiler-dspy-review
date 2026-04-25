@@ -50,7 +50,7 @@ Defaults are configurable via env: `PROGRAM_LM`, `JUDGE_LM` (LiteLLM
 model strings). Tested with `anthropic/claude-sonnet-4-6` and
 `anthropic/claude-opus-4-7`.
 
-## Results, honestly
+## Results
 
 On the held-out PR (3 files, 11 gold comments from gnodar01):
 
